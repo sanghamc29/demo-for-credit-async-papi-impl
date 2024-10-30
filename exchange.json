@@ -1,0 +1,10 @@
+{
+  "main": "demo-for-credit-async-papi-impl.yaml",
+  "name": "demo-for-credit-async-papi-impl",
+  "classifier": "evented-api",
+  "apiVersion": "v1",
+  "descriptorVersion": "1.0.0",
+  "groupId": null,
+  "assetId": "demo-for-credit-async-papi-impl",
+  "version": "1.0.0"
+}
