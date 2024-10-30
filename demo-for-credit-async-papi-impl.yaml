@@ -1,5 +1,97 @@
 asyncapi: '2.6.0'
 info:
-  title: demo-for-credit-async-papi-impl
-  version: '1.0.0'
-channels: {}
+  title: Credit Async PAPI
+  version: 'v1'
+  description: | 
+    Async PAPI implements ansynchronous integration processes required by credit application processing. 
+    * Sync business messages between CMS and SF
+    * Sync credit decision/scoring between SF, Credit Platform, and Point of Sale (Dealer)
+    * Sync updates in credit application data with Point of Sale (Dealer)
+
+defaultContentType: application/json
+
+servers:
+  amq-prod:
+    url: "https://demo.com"
+    protocol: anypointmq
+    description: Production Anypoint MQ for US region
+    security:
+    - oAuth: []
+      
+channels:
+  newBusinessEvent:
+    description: Synchronise new business event message between CMS and Salesforce
+    subscribe:
+      message:
+        $ref: EventNotification.yaml#/EventNotification
+   
+    bindings:
+       $ref: "#/components/channelBindings/anypointmqNewBusinessEvent"
+
+  enrichCreditApplication:
+    description: Trigger enrichment process for application.
+    subscribe:
+      message:
+        $ref: EventNotification.yaml#/EventNotification
+    servers:
+      - amq-prod
+    bindings:
+      $ref: "#/components/channelBindings/anypointmqEnrichCreditApplication"
+
+  createCreditDecision:
+    description: Trigger credit decision for application and stores result to salesforce.
+    subscribe:
+      message:
+        $ref: EventNotification.yaml#/EventNotification
+   
+    bindings:
+      $ref: "#/components/channelBindings/anypointmqCreateCreditDecision"
+
+  syncCreditApplication:
+    description: Trigger credit application sync process to copy decision details from salesforce to MBA
+    subscribe:
+      message:
+        $ref: EventNotification.yaml#/EventNotification
+   
+    bindings:
+      $ref: "#/components/channelBindings/anypointmqSyncCreditApplication"
+
+  backfeedCreditApplication:
+    description: Trigger enrichment process for application.
+    subscribe:
+      message:
+        $ref: EventNotification.yaml#/EventNotification
+  
+    bindings:
+      $ref: "#/components/channelBindings/anypointmqBackfeedCreditDecision"
+                  
+components:
+  channelBindings:
+    anypointmqNewBusinessEvent:
+      anypointmq:
+        destination: 'Q.ALFA.MBFS.CREDIT.SFDC.PROD.V1'
+        destinationType: 'fifo-queue'
+    anypointmqEnrichCreditApplication:
+      anypointmq:
+        destination: 'Q.CREDIT-APP-PAPI.MBFS.CREDIT-APPLICATION-ENRICHMENT.SFDC.PROD.V1'
+        destinationType: 'fifo-queue'
+    anypointmqCreateCreditDecision:
+      anypointmq:
+        destination: 'Q.SFDC.MBFS.CREDIT-APPLICATION-DECISION.SFDC.PROD.V1'
+        destinationType: 'fifo-queue'
+    anypointmqSyncCreditApplication:
+      anypointmq:
+        destination: 'Q.SFDC.MBFS.CREDIT-UPDATES.MB-ADVANTAGE.PROD.V1'
+        destinationType: 'fifo-queue'
+    anypointmqBackfeedCreditDecision:
+      anypointmq:
+        destination: 'Q.SFDC.MBFS.CREDIT-APPLICATION.MB-ADVANTAGE.PROD.V1'
+        destinationType: 'fifo-queue'
+    
+  securitySchemes:
+    oAuth:
+      type: oauth2
+      flows: 
+        clientCredentials:
+          tokenUrl: 'https://anypoint.mulesoft.com/accounts/oauth2/token'
+          scopes: {}

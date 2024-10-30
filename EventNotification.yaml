@@ -1,0 +1,27 @@
+EventNotification:
+  payload:
+    type: object
+    properties:
+      eventType:
+        type: string
+        required: true
+      entities:
+        type: array
+        items:
+          properties:
+            type:
+              type: string
+              required: true
+            id:
+              type: string
+              required: true
+            subId:
+              type: string
+              required: false
+              description: Use in case there is a need for two IDs to guarantee the uniqueness
+            apiEndpoint:
+              type: string 
+              required: false
+      eventMetadata:
+        type: string
+        required: false
